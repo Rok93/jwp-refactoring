@@ -138,6 +138,23 @@ class OrderServiceTest {
             assertThatThrownBy(() -> orderService.changeOrderStatus(completionOrder.getId(), mealOrder))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
+
+        @DisplayName("실패 - 등록되어있지 않은 주문인 경우")
+        @Test
+        void changeOrderStatusWhenNotRegisteredOrderStatusIsCOMPLETION() {
+            //given
+            Order notRegisteredOrder = new Order();
+            notRegisteredOrder.setId(100L);
+            notRegisteredOrder.setOrderStatus(OrderStatus.COMPLETION.name());
+            orderDao.save(notRegisteredOrder);
+
+            Order mealOrder = new Order();
+            mealOrder.setOrderStatus(OrderStatus.MEAL.name());
+
+            //when //then
+            assertThatThrownBy(() -> orderService.changeOrderStatus(notRegisteredOrder.getId(), mealOrder))
+                    .isExactlyInstanceOf(IllegalArgumentException.class);
+        }
     }
 
     @DisplayName("[주문 조회] 성공")
@@ -164,8 +181,8 @@ class OrderServiceTest {
         return orderService.create(order);
     }
 
-    private Order registerOrder(Long invalidOrderTableId) {
-        return registerOrder(invalidOrderTableId, Collections.singletonList(validOrderLineItem));
+    private Order registerOrder(Long orderTableId) {
+        return registerOrder(orderTableId, Collections.singletonList(validOrderLineItem));
     }
 
     private Order registerOrder() {
