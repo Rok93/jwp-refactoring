@@ -48,7 +48,7 @@ class TableGroupServiceTest {
     }
 
     @Nested
-    @DisplayName("[단체 지정 - 조회]")
+    @DisplayName("[단체 지정 - 등록]")
     class CreateTableGroup {
 
         @DisplayName("성공")
