@@ -159,15 +159,10 @@ class TableGroupServiceTest {
 
     private OrderTable registerOrderTable(boolean empty) {
         OrderTable orderTable = new OrderTable();
-//        orderTable.setId(id);
         orderTable.setEmpty(empty);
 
         return tableService.create(orderTable);
     }
-
-//    private OrderTable registerOrderTable(boolean empty) {
-//        return registerOrderTable(null, empty);
-//    }
 
     private OrderTable registerOrderTable() {
         return registerOrderTable(true);
