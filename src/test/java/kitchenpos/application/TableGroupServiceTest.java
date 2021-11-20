@@ -40,7 +40,6 @@ class TableGroupServiceTest {
     private OrderTable firstOrderTable;
     private OrderTable secondOrderTable;
 
-
     @BeforeEach
     void setUp() {
         menuGroup = new MenuGroup(2L, "한마리메뉴");
@@ -164,9 +163,10 @@ class TableGroupServiceTest {
         return registerOrderTable(true);
     }
 
-    private void registerOrder(OrderTable cookingOrderTable) { // todo: OrderLineItem 쪽에 문제...
-        OrderLineItem orderLineItem = new OrderLineItem(menu, 1);
-        Order order = Order.of(cookingOrderTable, Collections.singletonList(orderLineItem));
+    private void registerOrder(OrderTable cookingOrderTable) { // todo: OrderLineItem 쪽에 문제...  (오늘은 여기까지!)
+        Order order = Order.of(cookingOrderTable);
+        OrderLineItem orderLineItem = new OrderLineItem(menu, 1L);
+        order.addOrderLineItem(orderLineItem);
         orderService.create(order);
     }
 }

@@ -35,6 +35,11 @@ public class Order {
     protected Order() {
     }
 
+    public Order(OrderTable orderTable, OrderStatus orderStatus) {
+        this.orderTable = orderTable;
+        this.orderStatus = orderStatus;
+    }
+
     public Order(OrderTable orderTable, OrderStatus orderStatus, List<OrderLineItem> orderLineItems) {
         this(null, orderTable, orderStatus, orderLineItems);
     }
@@ -57,6 +62,10 @@ public class Order {
         }
     }
 
+    public static Order of(OrderTable orderTable) {
+        return new Order(orderTable,OrderStatus.COOKING);
+    }
+
     public static Order of(OrderTable orderTable, List<OrderLineItem> orderLineItems) {
         return new Order(orderTable, OrderStatus.COOKING, orderLineItems);
     }
@@ -69,7 +78,8 @@ public class Order {
         this.orderStatus = orderStatus;
     }
 
-    public void addOrderLineItem(OrderLineItem newOrderLineItem) {
+    public void addOrderLineItem(OrderLineItem newOrderLineItem) { //todo: 편의제공 메서드로 이짓 저짓 하고 있음!
+        newOrderLineItem.setOrder(this);
         this.orderLineItems.add(newOrderLineItem);
     }
 

@@ -14,7 +14,7 @@ public class Menu {
     private String name;
     private BigDecimal price;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_group_id")
     private MenuGroup menuGroup;
 

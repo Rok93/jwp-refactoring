@@ -51,7 +51,6 @@ public class OrderService {
         for (final OrderLineItem orderLineItem : orderLineItems) { //todo: Order에 casecade 속성을 잘 걸면!!! 따로 저장할 필요 없이 잘 들어가지 않을까...?
             Menu menu = menuRepository.findById(orderLineItem.getMenuId())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴입니다."));
-//            orderLineItem.setOrderId(orderId);
             OrderLineItem newOrderLineItem = new OrderLineItem(menu, orderLineItem.getQuantity());
             savedOrderLineItems.add(orderLineItemRepository.save(newOrderLineItem));
         }
