@@ -98,6 +98,17 @@ class OrderServiceTest {
             assertThatThrownBy(() -> registerOrder(invalidOrderTableId))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
+
+        @DisplayName("실패 - 주문 테이블이 empty인 경우")
+        @Test
+        void createWhenOrderTableIsEmpty() {
+            //given
+            OrderTable emptyOrderTable = registerOrderTable(true);
+
+            //when //then
+            assertThatThrownBy(() -> registerOrder(emptyOrderTable.getId()))
+                    .isExactlyInstanceOf(IllegalArgumentException.class);
+        }
     }
 
     @Nested
