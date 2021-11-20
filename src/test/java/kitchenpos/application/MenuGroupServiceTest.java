@@ -20,16 +20,13 @@ class MenuGroupServiceTest {
     @DisplayName("[메뉴 그룹 추가] - 성공")
     @Test
     void create() {
-        //given
-        MenuGroup menuGroup = new MenuGroup();
-        menuGroup.setName("menu");
-
-        //when
-        MenuGroup actual = menuGroupService.create(menuGroup);
+        //given //when
+        String menuName = "menu1";
+        MenuGroup actual = registerMenu(menuName);
 
         //then
         assertThat(actual.getId()).isNotNull();
-        assertThat(actual.getName()).isEqualTo(menuGroup.getName());
+        assertThat(actual.getName()).isEqualTo(menuName);
     }
 
     @DisplayName("[메뉴 그룹 조회] - 성공")
@@ -40,5 +37,11 @@ class MenuGroupServiceTest {
 
         //then
         assertThat(actual).hasSize(4);
+    }
+
+    private MenuGroup registerMenu(String menuName) {
+        MenuGroup menuGroup = new MenuGroup();
+        menuGroup.setName(menuName);
+        return menuGroupService.create(menuGroup);
     }
 }

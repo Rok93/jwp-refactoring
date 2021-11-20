@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import support.IntegrationTest;
 
 import java.math.BigDecimal;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,24 +36,18 @@ class MenuServiceTest {
     void setUp() {
         validMenuGroup = new MenuGroup();
         validMenuGroup.setId(1L);
-        validMenuGroup.setName("교촌 셋트");
+        validMenuGroup.setName("두마리메뉴");
 
         invalidMenuGroup = new MenuGroup();
         invalidMenuGroup.setId(100L);
         invalidMenuGroup.setName("없는 셋트");
 
-        validProduct = new Product();
-        validProduct.setId(1L);
-        validProduct.setName("후라이드");
-        validProduct.setPrice(BigDecimal.valueOf(16_000));
-
-        invalidProduct = new Product();
-        invalidMenuGroup.setId(100L);
-        invalidMenuGroup.setName("황천의 뒤틀린 치킨");
-        invalidProduct.setPrice(BigDecimal.valueOf(100_000));
+        validProduct = testProduct(1L, BigDecimal.valueOf(16_000), "후라이드치킨");
+        invalidProduct = testProduct(100L, BigDecimal.valueOf(100_000), "황천의 뒤틀린 치킨");
     }
 
     @Nested
+    @IntegrationTest
     @DisplayName("[메뉴 추가]")
     class AddingMenu {
 
@@ -62,13 +56,12 @@ class MenuServiceTest {
         void create() {
             //given
             MenuProduct menuProduct = testMenuProduct(validProduct, 1);
-            Menu menu = testMenu(validMenuGroup, menuProduct, validProduct.getPrice());
 
             //when
-            Menu actual = menuService.create(menu);
+            Menu actual = registerMenu(menuProduct);
 
             //then
-            assertThat(actual.getMenuGroupId()).isEqualTo(menu.getMenuGroupId());
+            assertThat(actual.getMenuGroupId()).isNotNull();
             assertThat(actual.getPrice().longValue()).isEqualTo(validProduct.getPrice().longValue());
             assertThat(actual.getMenuProducts()).hasSize(1);
             assertThat(actual.getMenuProducts().get(0).getMenuId()).isEqualTo(actual.getId());
@@ -148,6 +141,19 @@ class MenuServiceTest {
         assertThat(actual).hasSize(6);
     }
 
+    private Menu registerMenu(MenuProduct menuProduct) {
+        Menu menu = testMenu(validMenuGroup, menuProduct, validProduct.getPrice());
+        return menuService.create(menu);
+    }
+
+    private Product testProduct(Long id, BigDecimal price, String name) {
+        Product product = new Product();
+        product.setId(id);
+        product.setPrice(price);
+        product.setName(name);
+        return product;
+    }
+
     private MenuProduct testMenuProduct(Product product, int quantity) {
         MenuProduct menuProduct = new MenuProduct();
         menuProduct.setProductId(product.getId());
@@ -160,7 +166,7 @@ class MenuServiceTest {
         menu.setName("menu");
         menu.setMenuGroupId(menuGroup.getId());
         menu.setPrice(price);
-        menu.setMenuProducts(Collections.singletonList(menuProduct));
+        menu.setMenuProducts(Arrays.asList(menuProduct));
         return menu;
     }
 }

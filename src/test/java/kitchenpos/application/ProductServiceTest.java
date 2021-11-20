@@ -18,12 +18,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ProductServiceTest {
 
     private static final String PRODUCT_NAME = "스타벅스 돌체라떼";
-    private static final BigDecimal PRODUCT_PRICE = BigDecimal.valueOf(5_600);
+    private static final int PRODUCT_PRICE = 5_600;
 
     @Autowired
     private ProductService productService;
 
     @Nested
+    @IntegrationTest
     @DisplayName("[상품 등록]")
     class CreateProduct {
 
@@ -35,7 +36,7 @@ class ProductServiceTest {
 
             //then
             assertThat(savedProduct).isNotNull();
-            assertThat(savedProduct.getPrice().longValue()).isEqualTo(PRODUCT_PRICE.longValue());
+            assertThat(savedProduct.getPrice().intValue()).isEqualTo(PRODUCT_PRICE);
             assertThat(savedProduct.getName()).isEqualTo(PRODUCT_NAME);
         }
 
@@ -43,7 +44,7 @@ class ProductServiceTest {
         @Test
         void createWhenPriceIsNegative() {
             //given
-            BigDecimal invalidPrice = BigDecimal.valueOf(-1_000);
+            int invalidPrice = -1_000;
 
             // when //then
             assertThatThrownBy(() -> registerProduct(invalidPrice))
@@ -62,12 +63,15 @@ class ProductServiceTest {
         assertThat(actual).hasSize(6);
     }
 
-    private Product registerProduct(BigDecimal price) {
+    private Product registerProduct(String name, int price) {
         Product product = new Product();
-        product.setName(PRODUCT_NAME);
-        product.setPrice(price);
-
+        product.setName(name);
+        product.setPrice(BigDecimal.valueOf(price));
         return productService.create(product);
+    }
+
+    private Product registerProduct(int price) {
+        return registerProduct(PRODUCT_NAME, price);
     }
 
     private Product registerProduct() {

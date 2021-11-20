@@ -41,6 +41,7 @@ class OrderServiceTest {
     }
 
     @Nested
+    @IntegrationTest
     @DisplayName("[주문 추가]")
     class CreateOrder {
 
@@ -108,6 +109,7 @@ class OrderServiceTest {
     }
 
     @Nested
+    @IntegrationTest
     @DisplayName("[주문 상태 변경]")
     class ChangeOrderStatus {
 

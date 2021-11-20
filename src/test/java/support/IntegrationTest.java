@@ -1,7 +1,7 @@
 package support;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.jdbc.Sql;
 
 import javax.transaction.Transactional;
 import java.lang.annotation.ElementType;
@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 
 @Target(value = {ElementType.TYPE})
 @Retention(value = RetentionPolicy.RUNTIME)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@Sql({"classpath:dataInit.sql", "classpath:dummyData.sql"})
 @SpringBootTest
 @Transactional
 public @interface IntegrationTest {

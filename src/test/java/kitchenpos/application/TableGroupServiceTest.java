@@ -1,10 +1,8 @@
 package kitchenpos.application;
 
 import kitchenpos.dao.TableGroupDao;
+import kitchenpos.domain.*;
 import kitchenpos.domain.Order;
-import kitchenpos.domain.OrderLineItem;
-import kitchenpos.domain.OrderTable;
-import kitchenpos.domain.TableGroup;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import support.IntegrationTest;
@@ -33,6 +31,9 @@ class TableGroupServiceTest {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private MenuService menuService;
+
     private OrderTable firstOrderTable;
     private OrderTable secondOrderTable;
 
@@ -50,6 +51,7 @@ class TableGroupServiceTest {
     }
 
     @Nested
+    @IntegrationTest
     @DisplayName("[단체 지정 - 등록]")
     class CreateTableGroup {
 
@@ -114,6 +116,7 @@ class TableGroupServiceTest {
     }
 
     @Nested
+    @IntegrationTest
     @DisplayName("[단체 지정 취소]")
     class UngroupTableGroup {
 
