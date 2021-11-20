@@ -4,6 +4,8 @@ import kitchenpos.domain.Menu;
 import kitchenpos.domain.MenuGroup;
 import kitchenpos.domain.MenuProduct;
 import kitchenpos.domain.Product;
+import kitchenpos.domain.menu.dto.SaveMenuProductRequest;
+import kitchenpos.domain.menu.dto.SaveMenuRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -34,16 +36,12 @@ class MenuServiceTest {
 
     @BeforeEach
     void setUp() {
-        validMenuGroup = new MenuGroup();
-        validMenuGroup.setId(1L);
-        validMenuGroup.setName("두마리메뉴");
+        validMenuGroup = new MenuGroup(1L, "두마리메뉴");
 
-        invalidMenuGroup = new MenuGroup();
-        invalidMenuGroup.setId(100L);
-        invalidMenuGroup.setName("없는 셋트");
+        invalidMenuGroup = new MenuGroup(100L, "지옥행 열차 셋트");
 
-        validProduct = testProduct(1L, BigDecimal.valueOf(16_000), "후라이드치킨");
-        invalidProduct = testProduct(100L, BigDecimal.valueOf(100_000), "황천의 뒤틀린 치킨");
+        validProduct = testProduct(1L, "후라이드치킨", BigDecimal.valueOf(16_000));
+        invalidProduct = testProduct(100L, "황천의 뒤틀린 치킨", BigDecimal.valueOf(100_000));
     }
 
     @Nested
@@ -63,8 +61,9 @@ class MenuServiceTest {
             //then
             assertThat(actual.getMenuGroupId()).isNotNull();
             assertThat(actual.getPrice().longValue()).isEqualTo(validProduct.getPrice().longValue());
+            assertThat(actual.getName()).isEqualTo("menu");
             assertThat(actual.getMenuProducts()).hasSize(1);
-            assertThat(actual.getMenuProducts().get(0).getMenuId()).isEqualTo(actual.getId());
+            assertThat(actual.getMenuProducts().get(0).getMenu().getId()).isEqualTo(actual.getId());
             assertThat(actual.getMenuProducts().get(0).getProductId()).isEqualTo(menuProduct.getProductId());
             assertThat(actual.getMenuProducts().get(0).getQuantity()).isEqualTo(menuProduct.getQuantity());
         }
@@ -76,9 +75,10 @@ class MenuServiceTest {
             //given
             MenuProduct menuProduct = testMenuProduct(validProduct, 1);
             Menu menu = testMenu(validMenuGroup, menuProduct, price);
+            SaveMenuRequest saveMenuRequest = testMenuRequest(menuProduct, price);
 
             //when //then
-            assertThatThrownBy(() -> menuService.create(menu))
+            assertThatThrownBy(() -> menuService.create(saveMenuRequest))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
 
@@ -87,10 +87,12 @@ class MenuServiceTest {
         void createWhenPriceIsNegative() {
             //given
             MenuProduct menuProduct = testMenuProduct(validProduct, 1);
-            Menu menu = testMenu(validMenuGroup, menuProduct, BigDecimal.valueOf(-1));
+            BigDecimal invalidPrice = BigDecimal.valueOf(-1);
+
+            SaveMenuRequest saveMenuRequest = testMenuRequest(menuProduct, invalidPrice);
 
             //when //then
-            assertThatThrownBy(() -> menuService.create(menu))
+            assertThatThrownBy(() -> menuService.create(saveMenuRequest))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
 
@@ -99,10 +101,10 @@ class MenuServiceTest {
         void createWhenMenuGroupIsNotExist() {
             //given
             MenuProduct menuProduct = testMenuProduct(validProduct, 1);
-            Menu menu = testMenu(invalidMenuGroup, menuProduct, validProduct.getPrice());
+            SaveMenuRequest saveMenuRequest = testMenuRequest(menuProduct, BigDecimal.valueOf(10_000), invalidMenuGroup.getId());
 
             //when //then
-            assertThatThrownBy(() -> menuService.create(menu))
+            assertThatThrownBy(() -> menuService.create(saveMenuRequest))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
 
@@ -111,10 +113,10 @@ class MenuServiceTest {
         void createWhenHavingNotExistMenuProduct() {
             //given
             MenuProduct menuProduct = testMenuProduct(invalidProduct, 1);
-            Menu menu = testMenu(validMenuGroup, menuProduct, invalidProduct.getPrice());
+            SaveMenuRequest saveMenuRequest = testMenuRequest(menuProduct, invalidProduct.getPrice());
 
             //when //then
-            assertThatThrownBy(() -> menuService.create(menu))
+            assertThatThrownBy(() -> menuService.create(saveMenuRequest))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
 
@@ -123,10 +125,10 @@ class MenuServiceTest {
         void createWhenMenuPriceIsBiggerThanSumOfEachOrderProducts() {
             //given
             MenuProduct menuProduct = testMenuProduct(validProduct, 1);
-            Menu menu = testMenu(validMenuGroup, menuProduct, validProduct.getPrice().add(BigDecimal.ONE));
+            SaveMenuRequest saveMenuRequest = testMenuRequest(menuProduct, validProduct.getPrice().add(BigDecimal.ONE));
 
             //when //then
-            assertThatThrownBy(() -> menuService.create(menu))
+            assertThatThrownBy(() -> menuService.create(saveMenuRequest))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
     }
@@ -141,32 +143,32 @@ class MenuServiceTest {
         assertThat(actual).hasSize(6);
     }
 
-    private Menu registerMenu(MenuProduct menuProduct) {
-        Menu menu = testMenu(validMenuGroup, menuProduct, validProduct.getPrice());
-        return menuService.create(menu);
+    private SaveMenuRequest testMenuRequest(MenuProduct menuProduct, BigDecimal price, Long menuGroupId) {
+        return new SaveMenuRequest("menu", price, menuGroupId,
+                Arrays.asList(new SaveMenuProductRequest(menuProduct.getProductId(), menuProduct.getQuantity())));
     }
 
-    private Product testProduct(Long id, BigDecimal price, String name) {
-        Product product = new Product();
-        product.setId(id);
-        product.setPrice(price);
-        product.setName(name);
+    private SaveMenuRequest testMenuRequest(MenuProduct menuProduct, BigDecimal price) {
+        return testMenuRequest(menuProduct, price, validMenuGroup.getId());
+    }
+
+    private Menu registerMenu(MenuProduct menuProduct) {
+        SaveMenuRequest saveMenuRequest = testMenuRequest(menuProduct, validProduct.getPrice());
+        return menuService.create(saveMenuRequest);
+    }
+
+    private Product testProduct(Long id, String name, BigDecimal price) {
+        Product product = new Product(id, name, price);
         return product;
     }
 
     private MenuProduct testMenuProduct(Product product, int quantity) {
-        MenuProduct menuProduct = new MenuProduct();
-        menuProduct.setProductId(product.getId());
-        menuProduct.setQuantity(quantity);
-        return menuProduct;
+        return new MenuProduct(product, quantity);
     }
 
     private Menu testMenu(MenuGroup menuGroup, MenuProduct menuProduct, BigDecimal price) {
-        Menu menu = new Menu();
-        menu.setName("menu");
-        menu.setMenuGroupId(menuGroup.getId());
-        menu.setPrice(price);
-        menu.setMenuProducts(Arrays.asList(menuProduct));
+        Menu menu = new Menu("menu", price, menuGroup);
+        menu.addMenuProduct(menuProduct);
         return menu;
     }
 }

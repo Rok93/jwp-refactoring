@@ -40,8 +40,7 @@ class MenuGroupServiceTest {
     }
 
     private MenuGroup registerMenu(String menuName) {
-        MenuGroup menuGroup = new MenuGroup();
-        menuGroup.setName(menuName);
+        MenuGroup menuGroup = new MenuGroup(menuName);
         return menuGroupService.create(menuGroup);
     }
 }

@@ -1,9 +1,7 @@
 package kitchenpos.application;
 
-import kitchenpos.domain.Order;
-import kitchenpos.domain.OrderLineItem;
-import kitchenpos.domain.OrderStatus;
-import kitchenpos.domain.OrderTable;
+import kitchenpos.domain.*;
+import kitchenpos.domain.order_table.dto.SaveOrderTableRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -11,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import support.IntegrationTest;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,14 +28,14 @@ class OrderServiceTest {
 
     private OrderTable orderTable;
     private OrderLineItem validOrderLineItem;
+    private Menu menu;
 
     @BeforeEach
     void setUp() {
         orderTable = registerOrderTable(false);
+        menu = testMenu(1L, "후라이드치킨", BigDecimal.valueOf(16_000));
+        validOrderLineItem = new OrderLineItem(this.menu, 1);
 
-        validOrderLineItem = new OrderLineItem();
-        validOrderLineItem.setMenuId(1L);
-        validOrderLineItem.setQuantity(1);
     }
 
     @Nested
@@ -64,7 +62,7 @@ class OrderServiceTest {
             List<OrderLineItem> emptyOrderLineItems = Collections.emptyList();
 
             //when //then
-            assertThatThrownBy(() -> registerOrder(orderTable.getId(), emptyOrderLineItems))
+            assertThatThrownBy(() -> registerOrder(orderTable, emptyOrderLineItems))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
 
@@ -72,13 +70,11 @@ class OrderServiceTest {
         @Test
         void createWhenContainsNotExistOrderLineItem() {
             //given
-            OrderLineItem invalidOrderLineItem = new OrderLineItem();
-            invalidOrderLineItem.setMenuId(100L);
-            invalidOrderLineItem.setQuantity(1);
+            OrderLineItem invalidOrderLineItem = new OrderLineItem(testMenu(100L, "황천의 뒤틀린 닭튀김", BigDecimal.valueOf(100_000)), 1);
             List<OrderLineItem> invalidOrderLineItems = Collections.singletonList(invalidOrderLineItem);
 
             //when //then
-            assertThatThrownBy(() -> registerOrder(orderTable.getId(), invalidOrderLineItems))
+            assertThatThrownBy(() -> registerOrder(orderTable, invalidOrderLineItems))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
 
@@ -86,13 +82,11 @@ class OrderServiceTest {
         @Test
         void createWhenNotExistOrderTable() {
             //given
-            OrderTable notRegisteredOrderTable = new OrderTable();
+            OrderTable notRegisteredOrderTable = OrderTable.of();
             notRegisteredOrderTable.setId(100L);
 
-            Long invalidOrderTableId = notRegisteredOrderTable.getId();
-
             //when //then
-            assertThatThrownBy(() -> registerOrder(invalidOrderTableId))
+            assertThatThrownBy(() -> registerOrder(notRegisteredOrderTable))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
 
@@ -103,9 +97,10 @@ class OrderServiceTest {
             OrderTable emptyOrderTable = registerOrderTable(true);
 
             //when //then
-            assertThatThrownBy(() -> registerOrder(emptyOrderTable.getId()))
+            assertThatThrownBy(() -> registerOrder(emptyOrderTable))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
+
     }
 
     @Nested
@@ -118,12 +113,10 @@ class OrderServiceTest {
         void changeOrderStatus() {
             //given
             Order savedOrder = registerOrder();
-
-            Order changedOrder = new Order();
-            changedOrder.setOrderStatus(OrderStatus.MEAL.name());
+            String changedOrderStatus = OrderStatus.MEAL.name();
 
             //when
-            Order actual = orderService.changeOrderStatus(savedOrder.getId(), changedOrder);
+            Order actual = orderService.changeOrderStatus(savedOrder.getId(), changedOrderStatus);
 
             //then
             assertThat(actual.getId()).isEqualTo(savedOrder.getId());
@@ -137,14 +130,13 @@ class OrderServiceTest {
         void changeOrderStatusWhenAlreadyOrderStatusIsCOMPLETION() {
             //given
             Order completionOrder = registerOrder();
-            completionOrder.setOrderStatus(OrderStatus.COMPLETION.name());
+            completionOrder.changeStatus(OrderStatus.COMPLETION);
             orderService.create(completionOrder);
 
-            Order mealOrder = new Order();
-            mealOrder.setOrderStatus(OrderStatus.MEAL.name());
+            String changedOrderStatus = OrderStatus.MEAL.name();
 
             //when //then
-            assertThatThrownBy(() -> orderService.changeOrderStatus(completionOrder.getId(), mealOrder))
+            assertThatThrownBy(() -> orderService.changeOrderStatus(completionOrder.getId(), changedOrderStatus))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
 
@@ -152,15 +144,13 @@ class OrderServiceTest {
         @Test
         void changeOrderStatusWhenNotRegisteredOrderStatusIsCOMPLETION() {
             //given
-            Order notRegisteredOrder = new Order();
-            notRegisteredOrder.setId(100L);
-            notRegisteredOrder.setOrderStatus(OrderStatus.COMPLETION.name());
+            Order notRegisteredOrder = new Order(100L, OrderTable.of(), OrderStatus.COMPLETION,
+                    Collections.singletonList(new OrderLineItem(menu, 1L)));
 
-            Order mealOrder = new Order();
-            mealOrder.setOrderStatus(OrderStatus.MEAL.name());
+            String changedOrderStatus = OrderStatus.MEAL.name();
 
             //when //then
-            assertThatThrownBy(() -> orderService.changeOrderStatus(notRegisteredOrder.getId(), mealOrder))
+            assertThatThrownBy(() -> orderService.changeOrderStatus(notRegisteredOrder.getId(), changedOrderStatus))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
     }
@@ -179,34 +169,26 @@ class OrderServiceTest {
         assertThat(actual).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(order);
     }
 
-    private Order registerOrder(Long orderTableId, List<OrderLineItem> orderLineItems) {
-        Order order = new Order();
-        order.setOrderStatus(OrderStatus.COOKING.name());
-        order.setOrderedTime(LocalDateTime.now());
-        order.setOrderTableId(orderTableId);
-        order.setOrderLineItems(orderLineItems);
+    private Menu testMenu(Long id, String name, BigDecimal price) {
+        return new Menu(id, name, price, new MenuGroup(2L, "한마리메뉴"));
+    }
+
+    private Order registerOrder(OrderTable orderTable, List<OrderLineItem> orderLineItems) {
+        Order order = Order.of(orderTable, orderLineItems);
 
         return orderService.create(order);
     }
 
-    private Order registerOrder(Long orderTableId) {
-        return registerOrder(orderTableId, Collections.singletonList(validOrderLineItem));
+    private Order registerOrder(OrderTable orderTable) {
+        return registerOrder(orderTable, Collections.singletonList(validOrderLineItem));
     }
 
     private Order registerOrder() {
-        return registerOrder(orderTable.getId());
-    }
-
-    public OrderTable registerOrderTable(Long id, boolean empty) {
-        OrderTable orderTable = new OrderTable();
-        orderTable.setId(id);
-        orderTable.setEmpty(empty);
-        orderTable.setNumberOfGuests(0);
-
-        return tableService.create(orderTable);
+        return registerOrder(orderTable);
     }
 
     private OrderTable registerOrderTable(boolean empty) {
-        return registerOrderTable(null, empty);
+        SaveOrderTableRequest request = new SaveOrderTableRequest(0, empty);
+        return tableService.create(request);
     }
 }

@@ -1,34 +1,49 @@
 package kitchenpos.domain;
 
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
+@EntityListeners(AuditingEntityListener.class)
+@Entity
 public class TableGroup {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @CreatedDate
+    @Column(updatable = false)
     private LocalDateTime createdDate;
-    private List<OrderTable> orderTables;
+
+    @OneToMany(mappedBy = "tableGroup", cascade = CascadeType.ALL, orphanRemoval = true) //todo: 필드명(일반적으로 카멜케이스!)
+    private List<OrderTable> orderTables = new ArrayList<>();
+
+    protected TableGroup() {
+    }
+
+    public TableGroup(List<OrderTable> orderTables) {
+        this.orderTables = orderTables;
+    }
+
+    public void ungroupOrderTable(OrderTable orderTable) {
+        this.orderTables.remove(orderTable);
+//        orderTable.ungroup();
+    }
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(final Long id) {
-        this.id = id;
     }
 
     public LocalDateTime getCreatedDate() {
         return createdDate;
     }
 
-    public void setCreatedDate(final LocalDateTime createdDate) {
-        this.createdDate = createdDate;
-    }
-
     public List<OrderTable> getOrderTables() {
         return orderTables;
-    }
-
-    public void setOrderTables(final List<OrderTable> orderTables) {
-        this.orderTables = orderTables;
     }
 }

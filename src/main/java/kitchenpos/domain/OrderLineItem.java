@@ -1,33 +1,50 @@
 package kitchenpos.domain;
 
+import javax.persistence.*;
+
+@Entity
 public class OrderLineItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long seq;
-    private Long orderId;
-    private Long menuId;
-    private long quantity;
+
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order; // todo: Order가 생길 때, 자연스럽게 생겨야하는 녀석들이 아닐까??
+
+    @OneToOne
+    @JoinColumn(name = "menu_id") // todo: Menu와 다대일일까 일대일일까...? 🤔
+    private Menu menu;
+
+    private Long quantity;
+
+    protected OrderLineItem() {
+    }
+
+    public OrderLineItem(Menu menu, long quantity) {
+        this.menu = menu;
+        this.quantity = quantity;
+    }
 
     public Long getSeq() {
         return seq;
     }
 
-    public void setSeq(final Long seq) {
-        this.seq = seq;
+    public Order getOrder() {
+        return order;
+    }
+
+    public Menu getMenu() {
+        return menu;
     }
 
     public Long getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(final Long orderId) {
-        this.orderId = orderId;
+        return order.getId();
     }
 
     public Long getMenuId() {
-        return menuId;
-    }
-
-    public void setMenuId(final Long menuId) {
-        this.menuId = menuId;
+        return menu.getId();
     }
 
     public long getQuantity() {
@@ -36,5 +53,9 @@ public class OrderLineItem {
 
     public void setQuantity(final long quantity) {
         this.quantity = quantity;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
     }
 }

@@ -1,13 +1,17 @@
 package kitchenpos.application;
 
-import kitchenpos.dao.TableGroupDao;
+import kitchenpos.dao.TableGroupRepository;
 import kitchenpos.domain.*;
-import kitchenpos.domain.Order;
-import org.junit.jupiter.api.*;
+import kitchenpos.domain.order_table.dto.SaveOrderTableRequest;
+import kitchenpos.domain.table_group.dto.SaveTableGroupRequest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import support.IntegrationTest;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -20,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class TableGroupServiceTest {
 
     @Autowired
-    private TableGroupDao tableGroupDao;
+    private TableGroupRepository tableGroupRepository;
 
     @Autowired
     private TableGroupService tableGroupService;
@@ -31,23 +35,18 @@ class TableGroupServiceTest {
     @Autowired
     private OrderService orderService;
 
-    @Autowired
-    private MenuService menuService;
-
+    private MenuGroup menuGroup;
+    private Menu menu;
     private OrderTable firstOrderTable;
     private OrderTable secondOrderTable;
 
 
     @BeforeEach
     void setUp() {
+        menuGroup = new MenuGroup(2L, "한마리메뉴");
+        menu = new Menu(1L, "후라이드치킨", BigDecimal.valueOf(16_000), menuGroup);
         firstOrderTable = registerOrderTable();
         secondOrderTable = registerOrderTable();
-    }
-
-    @AfterEach
-    void tearDown() {
-        firstOrderTable.setTableGroupId(null);
-        secondOrderTable.setTableGroupId(null);
     }
 
     @Nested
@@ -59,14 +58,14 @@ class TableGroupServiceTest {
         @Test
         void create() {
             //given //when
-            TableGroup actual = registerTableGroup(Arrays.asList(firstOrderTable, secondOrderTable));
+            TableGroup actual = registerTableGroup(Arrays.asList(firstOrderTable.getId(), secondOrderTable.getId()));
 
             //then
             assertThat(actual).isNotNull();
             assertThat(actual.getOrderTables()).hasSize(2);
-            assertThat(actual.getOrderTables().get(0).getTableGroupId()).isNotNull();
+            assertThat(actual.getOrderTables().get(0).getTableGroup()).isNotNull();
             assertThat(actual.getOrderTables().get(0).getNumberOfGuests()).isEqualTo(0);
-            assertThat(actual.getOrderTables().get(1).getTableGroupId()).isNotNull();
+            assertThat(actual.getOrderTables().get(1).getTableGroup()).isNotNull();
             assertThat(actual.getOrderTables().get(1).getNumberOfGuests()).isEqualTo(0);
         }
 
@@ -74,7 +73,7 @@ class TableGroupServiceTest {
         @Test
         void createWhenOrderTablesSizeSmallerThanTwo() {
             //when //then
-            assertThatThrownBy(() -> registerTableGroup(Collections.singletonList(firstOrderTable)))
+            assertThatThrownBy(() -> registerTableGroup(Collections.singletonList(firstOrderTable.getId())))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
 
@@ -82,12 +81,10 @@ class TableGroupServiceTest {
         @Test
         void createWhenOrderTablesContainNotExistOrderTable() {
             //given
-            OrderTable notExistOrderTable = new OrderTable();
-            notExistOrderTable.setId(100L);
-            notExistOrderTable.setEmpty(true);
+            OrderTable notExistOrderTable = new OrderTable(0, true);
 
             //when //then
-            assertThatThrownBy(() -> registerTableGroup(Arrays.asList(firstOrderTable, notExistOrderTable)))
+            assertThatThrownBy(() -> registerTableGroup(Arrays.asList(firstOrderTable.getId(), notExistOrderTable.getId())))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
 
@@ -98,7 +95,7 @@ class TableGroupServiceTest {
             OrderTable notEmptyOrderTable = registerOrderTable(false);
 
             //when //then
-            assertThatThrownBy(() -> registerTableGroup(Arrays.asList(firstOrderTable, notEmptyOrderTable)))
+            assertThatThrownBy(() -> registerTableGroup(Arrays.asList(firstOrderTable.getId(), notEmptyOrderTable.getId())))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
 
@@ -107,10 +104,10 @@ class TableGroupServiceTest {
         void createWhenAlreadyRegistered() {
             //given
             OrderTable registeredOrderTable = registerOrderTable(true);
-            registerTableGroup(Arrays.asList(registerOrderTable(), registeredOrderTable));
+            registerTableGroup(Arrays.asList(registerOrderTable().getId(), registeredOrderTable.getId()));
 
             //when //then
-            assertThatThrownBy(() -> registerTableGroup(Arrays.asList(firstOrderTable, registeredOrderTable)))
+            assertThatThrownBy(() -> registerTableGroup(Arrays.asList(firstOrderTable.getId(), registeredOrderTable.getId())))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
     }
@@ -124,15 +121,16 @@ class TableGroupServiceTest {
         @Test
         void ungroup() {
             //given
-            List<OrderTable> orderTables = Arrays.asList(registerOrderTable(), registerOrderTable());
-            TableGroup tableGroup = registerTableGroup(orderTables);
+            List<Long> orderTableIds = Arrays.asList(registerOrderTable().getId(), registerOrderTable().getId());
+            TableGroup tableGroup = registerTableGroup(orderTableIds);
 
             //when
             tableGroupService.ungroup(tableGroup.getId());
 
             //then
-            TableGroup actual = tableGroupDao.findById(tableGroup.getId()).get();
-            assertThat(actual.getOrderTables()).usingElementComparatorOnFields("tableGroupId").isNull();
+            TableGroup actual = tableGroupRepository.findById(tableGroup.getId()).get();
+            assertThat(actual.getOrderTables()).isEmpty();
+//            assertThat(actual.getOrderTables()).usingElementComparatorOnFields("tableGroup").isNull();
         }
 
         @DisplayName("실패 - '계산 완료' 상태가 아닌 주문 테이블이 있는 경우")
@@ -141,10 +139,10 @@ class TableGroupServiceTest {
             //given
             OrderTable cookingOrderTable = registerOrderTable();
 
-            List<OrderTable> orderTables = Arrays.asList(cookingOrderTable, registerOrderTable());
-            TableGroup tableGroup = registerTableGroup(orderTables);
+            List<Long> orderTableIds = Arrays.asList(cookingOrderTable.getId(), registerOrderTable().getId());
+            TableGroup tableGroup = registerTableGroup(orderTableIds);
 
-            registerOrder(cookingOrderTable);
+            registerOrder(cookingOrderTable); // todo: Order_id 가 널이면 안된다.
 
             //when //then
             assertThatThrownBy(() -> tableGroupService.ungroup(tableGroup.getId()))
@@ -152,34 +150,23 @@ class TableGroupServiceTest {
         }
     }
 
-    private TableGroup registerTableGroup(List<OrderTable> orderTables) {
-        TableGroup tableGroup = new TableGroup();
-        tableGroup.setCreatedDate(LocalDateTime.now());
-        tableGroup.setOrderTables(orderTables);
-
-        return tableGroupService.create(tableGroup);
+    private TableGroup registerTableGroup(List<Long> orderTableIds) {
+        SaveTableGroupRequest request = new SaveTableGroupRequest(orderTableIds);
+        return tableGroupService.create(request);
     }
 
     private OrderTable registerOrderTable(boolean empty) {
-        OrderTable orderTable = new OrderTable();
-        orderTable.setEmpty(empty);
-
-        return tableService.create(orderTable);
+        SaveOrderTableRequest request = new SaveOrderTableRequest(0, empty);
+        return tableService.create(request);
     }
 
     private OrderTable registerOrderTable() {
         return registerOrderTable(true);
     }
 
-    private void registerOrder(OrderTable cookingOrderTable) {
-        Order order = new Order();
-        OrderLineItem orderLineItem = new OrderLineItem();
-        orderLineItem.setMenuId(1L);
-        orderLineItem.setQuantity(1);
-
-        order.setOrderTableId(cookingOrderTable.getId());
-        order.setOrderLineItems(Collections.singletonList(orderLineItem));
-
+    private void registerOrder(OrderTable cookingOrderTable) { // todo: OrderLineItem 쪽에 문제...
+        OrderLineItem orderLineItem = new OrderLineItem(menu, 1);
+        Order order = Order.of(cookingOrderTable, Collections.singletonList(orderLineItem));
         orderService.create(order);
     }
 }

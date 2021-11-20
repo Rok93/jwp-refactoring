@@ -1,6 +1,7 @@
 package kitchenpos.application;
 
 import kitchenpos.domain.Product;
+import kitchenpos.domain.product.dto.SaveProductRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -64,10 +65,8 @@ class ProductServiceTest {
     }
 
     private Product registerProduct(String name, int price) {
-        Product product = new Product();
-        product.setName(name);
-        product.setPrice(BigDecimal.valueOf(price));
-        return productService.create(product);
+        SaveProductRequest request = new SaveProductRequest(name, BigDecimal.valueOf(price));
+        return productService.create(request);
     }
 
     private Product registerProduct(int price) {
