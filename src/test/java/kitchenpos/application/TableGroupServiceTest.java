@@ -1,8 +1,10 @@
 package kitchenpos.application;
 
 import kitchenpos.dao.TableGroupDao;
-import kitchenpos.domain.*;
 import kitchenpos.domain.Order;
+import kitchenpos.domain.OrderLineItem;
+import kitchenpos.domain.OrderTable;
+import kitchenpos.domain.TableGroup;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import support.IntegrationTest;
@@ -60,16 +62,15 @@ class TableGroupServiceTest {
             //then
             assertThat(actual).isNotNull();
             assertThat(actual.getOrderTables()).hasSize(2);
+            assertThat(actual.getOrderTables().get(0).getTableGroupId()).isNotNull();
+            assertThat(actual.getOrderTables().get(0).getNumberOfGuests()).isEqualTo(0);
+            assertThat(actual.getOrderTables().get(1).getTableGroupId()).isNotNull();
+            assertThat(actual.getOrderTables().get(1).getNumberOfGuests()).isEqualTo(0);
         }
 
         @DisplayName("실패 - 주문 테이블의 갯수가 2개 미만인 경우")
         @Test
         void createWhenOrderTablesSizeSmallerThanTwo() {
-            //given
-            TableGroup tableGroup = new TableGroup();
-            tableGroup.setCreatedDate(LocalDateTime.now());
-            tableGroup.setOrderTables(Arrays.asList(firstOrderTable));
-
             //when //then
             assertThatThrownBy(() -> registerTableGroup(Collections.singletonList(firstOrderTable)))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
@@ -156,17 +157,17 @@ class TableGroupServiceTest {
         return tableGroupService.create(tableGroup);
     }
 
-    private OrderTable registerOrderTable(Long id, boolean empty) {
+    private OrderTable registerOrderTable(boolean empty) {
         OrderTable orderTable = new OrderTable();
-        orderTable.setId(id);
+//        orderTable.setId(id);
         orderTable.setEmpty(empty);
 
         return tableService.create(orderTable);
     }
 
-    private OrderTable registerOrderTable(boolean empty) {
-        return registerOrderTable(null, empty);
-    }
+//    private OrderTable registerOrderTable(boolean empty) {
+//        return registerOrderTable(null, empty);
+//    }
 
     private OrderTable registerOrderTable() {
         return registerOrderTable(true);
