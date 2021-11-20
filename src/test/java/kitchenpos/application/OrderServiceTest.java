@@ -1,6 +1,5 @@
 package kitchenpos.application;
 
-import kitchenpos.dao.OrderDao;
 import kitchenpos.domain.Order;
 import kitchenpos.domain.OrderLineItem;
 import kitchenpos.domain.OrderStatus;
@@ -25,9 +24,6 @@ class OrderServiceTest {
 
     @Autowired
     private TableService tableService;
-
-    @Autowired
-    private OrderDao orderDao; // todo: DAO를 살릴 것인가 말것인가...?
 
     @Autowired
     private OrderService orderService;
@@ -140,7 +136,7 @@ class OrderServiceTest {
             //given
             Order completionOrder = registerOrder();
             completionOrder.setOrderStatus(OrderStatus.COMPLETION.name());
-            orderDao.save(completionOrder);
+            orderService.create(completionOrder);
 
             Order mealOrder = new Order();
             mealOrder.setOrderStatus(OrderStatus.MEAL.name());
@@ -157,7 +153,6 @@ class OrderServiceTest {
             Order notRegisteredOrder = new Order();
             notRegisteredOrder.setId(100L);
             notRegisteredOrder.setOrderStatus(OrderStatus.COMPLETION.name());
-            orderDao.save(notRegisteredOrder);
 
             Order mealOrder = new Order();
             mealOrder.setOrderStatus(OrderStatus.MEAL.name());

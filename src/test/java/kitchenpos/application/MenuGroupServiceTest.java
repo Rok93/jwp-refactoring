@@ -28,6 +28,7 @@ class MenuGroupServiceTest {
         MenuGroup actual = menuGroupService.create(menuGroup);
 
         //then
+        assertThat(actual.getId()).isNotNull();
         assertThat(actual.getName()).isEqualTo(menuGroup.getName());
     }
 
