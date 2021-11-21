@@ -37,7 +37,7 @@ public class TableService {
     }
 
     @Transactional
-    public OrderTable changeEmpty(final Long orderTableId) {
+    public OrderTable changeEmpty(final Long orderTableId) { //todo: 리팩토링 대상!
         final OrderTable savedOrderTable = orderTableRepository.findById(orderTableId)
                 .orElseThrow(IllegalArgumentException::new);
 
@@ -52,25 +52,23 @@ public class TableService {
 
         savedOrderTable.toEmpty();
 
-        return orderTableRepository.save(savedOrderTable);
+        return savedOrderTable;
     }
 
     @Transactional
-    public OrderTable changeNumberOfGuests(final Long orderTableId, final OrderTable orderTable) {
-        final int numberOfGuests = orderTable.getNumberOfGuests();
-
-        if (numberOfGuests < 0) {
+    public OrderTable changeNumberOfGuests(final Long orderTableId, final int changedNumberOfGuests) { //todo: 리팩토링 대상!
+        if (changedNumberOfGuests < 0) { // todo: DTO에서 예외처리하기!
             throw new IllegalArgumentException();
         }
 
         final OrderTable savedOrderTable = orderTableRepository.findById(orderTableId)
                 .orElseThrow(IllegalArgumentException::new);
 
-        if (savedOrderTable.isEmpty()) {
+        if (savedOrderTable.isEmpty()) { // todo: domain으로 이동!
             throw new IllegalArgumentException();
         }
 
-        savedOrderTable.setNumberOfGuests(numberOfGuests);
+        savedOrderTable.setNumberOfGuests(changedNumberOfGuests);
 
         return orderTableRepository.save(savedOrderTable);
     }
