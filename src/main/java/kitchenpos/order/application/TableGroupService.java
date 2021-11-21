@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-@Transactional
 @Service
 public class TableGroupService {
     private final OrderRepository orderRepository;
@@ -25,9 +24,8 @@ public class TableGroupService {
     }
 
     @Transactional
-    public TableGroup create(final SaveOrderTableGroupRequest request) {
+    public TableGroup create(final SaveOrderTableGroupRequest request) { //todo: 리팩토링 대상!
         final List<Long> orderTableIds = request.getOrderTables();
-
         if (CollectionUtils.isEmpty(orderTableIds) || orderTableIds.size() < 2) { //todo: 일급컬렉션으로 변경이 가능하지 않을까...?
             throw new IllegalArgumentException();
         }

@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Transactional
 @Service
 public class MenuService {
     private final MenuRepository menuRepository;
@@ -37,7 +36,7 @@ public class MenuService {
     }
 
     @Transactional
-    public Menu create(final SaveMenuRequest request) { //todo: 개선해보기!
+    public Menu create(final SaveMenuRequest request) { //todo: 리팩토링 대상!
 
         if (!menuGroupRepository.existsById(request.getMenuGroupId())) {
             throw new IllegalArgumentException();

@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Transactional
 @Service
 public class MenuGroupService {
     private final MenuGroupRepository menuGroupRepository;

@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Transactional
 @Service
 public class OrderService {
     private final MenuRepository menuRepository;
@@ -30,7 +29,7 @@ public class OrderService {
     }
 
     @Transactional
-    public Order create(final Order order) {
+    public Order create(final Order order) { //todo: 리팩토링 대상!
         final List<OrderLineItem> orderLineItems = order.getOrderLineItems();
 
         final List<Long> menuIds = orderLineItems.stream()
@@ -44,12 +43,10 @@ public class OrderService {
         final OrderTable orderTable = orderTableRepository.findById(order.getOrderTableId())
                 .orElseThrow(IllegalArgumentException::new);
 
-//        final List<OrderLineItem> savedOrderLineItems = new ArrayList<>();
         Order savedOrder = new Order(orderTable, OrderStatus.COOKING);
         for (final OrderLineItem orderLineItem : orderLineItems) { //todo: Order에 casecade 속성을 잘 걸면!!! 따로 저장할 필요 없이 잘 들어가지 않을까...?
             Menu menu = menuRepository.findById(orderLineItem.getMenuId())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴입니다."));
-//            savedOrderLineItems.add(new OrderLineItem(menu, orderLineItem.getQuantity())); // todo: casecade 속성으로 인해서 이 부분 제거할 수 있을 듯 함!
             savedOrder.addOrderLineItem(new OrderLineItem(menu, orderLineItem.getQuantity()));
         }
         return orderRepository.save(savedOrder); //todo: DTO로 변경
