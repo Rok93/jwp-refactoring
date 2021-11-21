@@ -1,9 +1,9 @@
 package kitchenpos.menu.ui;
 
 import kitchenpos.menu.application.MenuService;
-import kitchenpos.menu.domain.Menu;
-import kitchenpos.menu.dto.MenuResponse;
-import kitchenpos.menu.dto.SaveMenuRequest;
+import kitchenpos.menu.ui.dto.MenuResponse;
+import kitchenpos.menu.ui.dto.SaveMenuRequest;
+import kitchenpos.menu.ui.dto.SavedMenuResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,8 +22,8 @@ public class MenuRestController {
     }
 
     @PostMapping("/api/menus")
-    public ResponseEntity<Menu> create(@RequestBody final SaveMenuRequest request) {
-        final Menu created = menuService.create(request);
+    public ResponseEntity<SavedMenuResponse> create(@RequestBody final SaveMenuRequest request) {
+        final SavedMenuResponse created = menuService.create(request);
         final URI uri = URI.create("/api/menus/" + created.getId());
         return ResponseEntity.created(uri).body(created);
     }

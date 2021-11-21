@@ -20,8 +20,8 @@ public class TableGroup {
     @Column(updatable = false)
     private LocalDateTime createdDate;
 
-    @OneToMany(mappedBy = "tableGroup", cascade = CascadeType.ALL, orphanRemoval = true) //todo: 필드명(일반적으로 카멜케이스!)
-    private List<OrderTable> orderTables = new ArrayList<>();
+    @OneToMany(mappedBy = "tableGroup", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    private List<OrderTable> orderTables = new ArrayList<>(); //todo: 일급 컬렉션으로 바꿔보기!
 
     protected TableGroup() {
     }

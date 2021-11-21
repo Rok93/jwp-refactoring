@@ -1,4 +1,4 @@
-package kitchenpos.menu.dto;
+package kitchenpos.menu.ui.dto;
 
 import kitchenpos.menu.domain.Menu;
 import kitchenpos.menu.domain.MenuGroup;
@@ -53,43 +53,5 @@ public class MenuResponse {
 
     public BigDecimal getPrice() {
         return price;
-    }
-
-    static class MenuProductResponse {
-
-        private Long seq;
-        private Menu menu;
-        private long quantity;
-        private Product product;
-
-        public MenuProductResponse(Long seq, Menu menu, long quantity, Product product) {
-            this.seq = seq;
-            this.menu = menu;
-            this.quantity = quantity;
-            this.product = product;
-        }
-
-        public MenuProductResponse(MenuProduct menuProduct) {
-            seq = menuProduct.getSeq();
-            menu = menuProduct.getMenu();
-            quantity = menuProduct.getQuantity();
-            product = menuProduct.getProduct();
-        }
-
-        public Long getSeq() {
-            return seq;
-        }
-
-        public Menu getMenu() {
-            return menu;
-        }
-
-        public long getQuantity() {
-            return quantity;
-        }
-
-        public Product getProduct() {
-            return product;
-        }
     }
 }

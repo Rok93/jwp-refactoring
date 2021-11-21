@@ -1,7 +1,7 @@
 package kitchenpos.order.application;
 
 import kitchenpos.order.domain.*;
-import kitchenpos.order.dto.SaveOrderTableGroupRequest;
+import kitchenpos.order.ui.dto.SaveOrderTableGroupRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;

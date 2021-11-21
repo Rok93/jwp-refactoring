@@ -2,7 +2,6 @@ package kitchenpos.order.domain;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import org.springframework.util.CollectionUtils;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -36,8 +35,7 @@ public class Order {
     }
 
     public Order(OrderTable orderTable, OrderStatus orderStatus) {
-        this.orderTable = orderTable;
-        this.orderStatus = orderStatus;
+        this(orderTable, orderStatus, new ArrayList<>());
     }
 
     public Order(OrderTable orderTable, OrderStatus orderStatus, List<OrderLineItem> orderLineItems) {
@@ -53,10 +51,6 @@ public class Order {
     }
 
     private void validateOrder(OrderTable orderTable, List<OrderLineItem> orderLineItems) {
-        if (CollectionUtils.isEmpty(orderLineItems)) {
-            throw new IllegalArgumentException();
-        }
-
         if (orderTable.isEmpty()) {
             throw new IllegalArgumentException();
         }
@@ -79,6 +73,10 @@ public class Order {
     }
 
     public void addOrderLineItem(OrderLineItem orderLineItem) {
+        if (orderTable.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+
         orderLineItem.setOrder(this);
         this.orderLineItems.add(orderLineItem);
     }
@@ -89,6 +87,10 @@ public class Order {
 
     public Long getOrderTableId() {
         return orderTable.getId();
+    }
+
+    public OrderTable getOrderTable() {
+        return orderTable;
     }
 
     public OrderStatus getOrderStatus() {

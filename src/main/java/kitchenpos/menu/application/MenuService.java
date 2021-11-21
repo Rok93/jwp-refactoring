@@ -1,9 +1,10 @@
 package kitchenpos.menu.application;
 
 import kitchenpos.menu.domain.*;
-import kitchenpos.menu.dto.MenuResponse;
-import kitchenpos.menu.dto.SaveMenuProductRequest;
-import kitchenpos.menu.dto.SaveMenuRequest;
+import kitchenpos.menu.ui.dto.MenuResponse;
+import kitchenpos.menu.ui.dto.SaveMenuProductRequest;
+import kitchenpos.menu.ui.dto.SaveMenuRequest;
+import kitchenpos.menu.ui.dto.SavedMenuResponse;
 import kitchenpos.product.domain.Product;
 import kitchenpos.product.domain.ProductRepository;
 import org.springframework.stereotype.Service;
@@ -20,24 +21,20 @@ import java.util.stream.Collectors;
 public class MenuService {
     private final MenuRepository menuRepository;
     private final MenuGroupRepository menuGroupRepository;
-    private final MenuProductRepository menuProductRepository;
     private final ProductRepository productRepository;
 
     public MenuService(
             final MenuRepository menuRepository,
             final MenuGroupRepository menuGroupRepository,
-            final MenuProductRepository menuProductRepository,
             final ProductRepository productRepository
     ) {
         this.menuRepository = menuRepository;
         this.menuGroupRepository = menuGroupRepository;
-        this.menuProductRepository = menuProductRepository;
         this.productRepository = productRepository;
     }
 
     @Transactional
-    public Menu create(final SaveMenuRequest request) { //todo: 리팩토링 대상!
-
+    public SavedMenuResponse create(final SaveMenuRequest request) { //todo: 리팩토링 대상!
         if (!menuGroupRepository.existsById(request.getMenuGroupId())) {
             throw new IllegalArgumentException();
         }
@@ -60,14 +57,14 @@ public class MenuService {
         MenuGroup menuGroup = menuGroupRepository.findById(request.getMenuGroupId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴 그룹입니다."));
 
-        final Menu savedMenu = menuRepository.save(new Menu(request.getName(), price, menuGroup));
+        final Menu savedMenu = menuRepository.save(new Menu(request.getName(), price, menuGroup)); // menu 생성
         products.stream()
                 .collect(Collectors.toMap(Function.identity(), product -> menuProductIdAndQuantities.get(product.getId())))
                 .entrySet().stream()
                 .map(entry -> new MenuProduct(entry.getKey(), entry.getValue()))
                 .forEach(menuProduct -> savedMenu.addMenuProduct(menuProduct));
 
-        return savedMenu;
+        return new SavedMenuResponse(savedMenu);
     }
 
     public List<MenuResponse> list() {

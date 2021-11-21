@@ -3,7 +3,7 @@ package kitchenpos.order.application;
 import kitchenpos.menu.domain.Menu;
 import kitchenpos.menu.domain.MenuGroup;
 import kitchenpos.order.domain.*;
-import kitchenpos.order.dto.SaveOrderTableRequest;
+import kitchenpos.order.ui.dto.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -52,17 +52,18 @@ class OrderServiceTest {
         @Test
         void create() {
             //when
-            Order actual = registerOrder();
+            SaveOrderResponse actual = registerOrder();
 
             //then
             assertThat(actual.getOrderStatus()).isEqualTo(OrderStatus.COOKING);
-            assertThat(actual.getOrderTableId()).isEqualTo(orderTable.getId());
+            assertThat(actual.getOrderTable().getId()).isEqualTo(orderTable.getId());
+            assertThat(actual.getOrderStatus()).isEqualTo(OrderStatus.COOKING);
             assertThat(actual.getOrderLineItems()).hasSize(1);
         }
 
         @DisplayName("실패 - 주문 항목이 비어있는 경우")
         @Test
-        void createWhenOrderLineItemsIsEmpty() {
+        void createWhenOrderLineItemsIsEmpty() { // todo: Order의 생성자로 OrderLineItem을 집어넣는 것이 아니라면... 😅 예외처리가 안 될 것이다.
             //given
             List<OrderLineItem> emptyOrderLineItems = Collections.emptyList();
 
@@ -116,26 +117,24 @@ class OrderServiceTest {
         @Test
         void changeOrderStatus() {
             //given
-            Order savedOrder = registerOrder();
+            SaveOrderResponse savedOrder = registerOrder();
             OrderStatus changedOrderStatus = OrderStatus.MEAL;
 
             //when
-            Order actual = orderService.changeOrderStatus(savedOrder.getId(), changedOrderStatus);
+            ChangeOrderResponse actual = orderService.changeOrderStatus(savedOrder.getId(), changedOrderStatus);
 
             //then
             assertThat(actual.getId()).isEqualTo(savedOrder.getId());
             assertThat(actual.getOrderStatus()).isEqualTo(OrderStatus.MEAL);
-            assertThat(actual.getOrderTableId()).isEqualTo(orderTable.getId());
-            assertThat(actual.getOrderLineItems()).hasSize(1);
+            assertThat(actual.getOrderTable().getId()).isEqualTo(orderTable.getId());
         }
 
         @DisplayName("실패 - 이미 '계산 완료'된 주문인 경우")
         @Test
         void changeOrderStatusWhenAlreadyOrderStatusIsCOMPLETION() {
             //given
-            Order completionOrder = registerOrder();
-            completionOrder.changeStatus(OrderStatus.COMPLETION);
-            orderService.create(completionOrder);
+            SaveOrderResponse completionOrder = registerOrder();
+            orderService.changeOrderStatus(completionOrder.getId(), OrderStatus.COMPLETION);
 
             OrderStatus changedOrderStatus = OrderStatus.MEAL;
 
@@ -163,30 +162,32 @@ class OrderServiceTest {
     @Test
     void list() {
         //given
-        Order order = registerOrder();
+        registerOrder();
 
         //when
-        List<Order> actual = orderService.list();
+        List<OrderResponse> actual = orderService.list();
 
         //then
         assertThat(actual).hasSize(1);
-        assertThat(actual).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(order);
+        assertThat(actual.get(0).getId()).isNotNull();
+        assertThat(actual.get(0).getOrderTable().getId()).isEqualTo(orderTable.getId());
+        assertThat(actual.get(0).getOrderTable().getNumberOfGuests()).isEqualTo(orderTable.getNumberOfGuests());
+        assertThat(actual.get(0).getOrderStatus()).isEqualTo(OrderStatus.COOKING);
     }
 
     private Menu testMenu(Long id, String name, BigDecimal price) {
         return new Menu(id, name, price, new MenuGroup(2L, "한마리메뉴"));
     }
 
-    private Order registerOrder(OrderTable orderTable, List<OrderLineItem> orderLineItems) {
-        Order order = Order.of(orderTable, orderLineItems);
-        return orderService.create(order);
+    private SaveOrderResponse registerOrder(OrderTable orderTable, List<OrderLineItem> orderLineItems) {
+        return orderService.create(new SaveOrderRequest(orderTable.getId(), orderLineItems));
     }
 
-    private Order registerOrder(OrderTable orderTable) {
+    private SaveOrderResponse registerOrder(OrderTable orderTable) {
         return registerOrder(orderTable, Arrays.asList(validOrderLineItem));
     }
 
-    private Order registerOrder() {
+    private SaveOrderResponse registerOrder() {
         return registerOrder(orderTable);
     }
 

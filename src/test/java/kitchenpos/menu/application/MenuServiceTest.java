@@ -3,16 +3,15 @@ package kitchenpos.menu.application;
 import kitchenpos.menu.domain.Menu;
 import kitchenpos.menu.domain.MenuGroup;
 import kitchenpos.menu.domain.MenuProduct;
-import kitchenpos.menu.dto.MenuResponse;
-import kitchenpos.menu.dto.SaveMenuProductRequest;
-import kitchenpos.menu.dto.SaveMenuRequest;
+import kitchenpos.menu.ui.dto.MenuResponse;
+import kitchenpos.menu.ui.dto.SaveMenuProductRequest;
+import kitchenpos.menu.ui.dto.SaveMenuRequest;
+import kitchenpos.menu.ui.dto.SavedMenuResponse;
 import kitchenpos.product.domain.Product;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import support.IntegrationTest;
 
@@ -38,7 +37,6 @@ class MenuServiceTest {
     @BeforeEach
     void setUp() {
         validMenuGroup = new MenuGroup(1L, "두마리메뉴");
-
         invalidMenuGroup = new MenuGroup(100L, "지옥행 열차 셋트");
 
         validProduct = testProduct(1L, "후라이드치킨", BigDecimal.valueOf(16_000));
@@ -57,14 +55,14 @@ class MenuServiceTest {
             MenuProduct menuProduct = testMenuProduct(validProduct, 1);
 
             //when
-            Menu actual = registerMenu(menuProduct);
+            SavedMenuResponse actual = registerMenu(menuProduct);
 
             //then
-            assertThat(actual.getMenuGroupId()).isNotNull();
+            assertThat(actual.getMenuGroup()).isNotNull();
             assertThat(actual.getPrice().longValue()).isEqualTo(validProduct.getPrice().longValue());
             assertThat(actual.getName()).isEqualTo("menu");
             assertThat(actual.getMenuProducts()).hasSize(1);
-            assertThat(actual.getMenuProducts().get(0).getMenu().getId()).isEqualTo(actual.getId());
+            assertThat(actual.getMenuProducts().get(0).getMenuId()).isEqualTo(actual.getId());
             assertThat(actual.getMenuProducts().get(0).getProduct().getId()).isEqualTo(menuProduct.getProduct().getId());
             assertThat(actual.getMenuProducts().get(0).getQuantity()).isEqualTo(menuProduct.getQuantity());
         }
@@ -139,7 +137,7 @@ class MenuServiceTest {
         return testMenuRequest(menuProduct, price, validMenuGroup.getId());
     }
 
-    private Menu registerMenu(MenuProduct menuProduct) {
+    private SavedMenuResponse registerMenu(MenuProduct menuProduct) {
         SaveMenuRequest saveMenuRequest = testMenuRequest(menuProduct, validProduct.getPrice());
         return menuService.create(saveMenuRequest);
     }
@@ -151,11 +149,5 @@ class MenuServiceTest {
 
     private MenuProduct testMenuProduct(Product product, int quantity) {
         return new MenuProduct(product, quantity);
-    }
-
-    private Menu testMenu(MenuGroup menuGroup, MenuProduct menuProduct, BigDecimal price) {
-        Menu menu = new Menu("menu", price, menuGroup);
-        menu.addMenuProduct(menuProduct);
-        return menu;
     }
 }

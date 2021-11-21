@@ -1,6 +1,9 @@
 package kitchenpos.menu.application;
 
 import kitchenpos.menu.domain.MenuGroup;
+import kitchenpos.menu.ui.dto.MenuGroupResponse;
+import kitchenpos.menu.ui.dto.SaveMenuGroupRequest;
+import kitchenpos.menu.ui.dto.SaveMenuGroupResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +25,7 @@ class MenuGroupServiceTest {
     void create() {
         //given //when
         String menuName = "menu1";
-        MenuGroup actual = registerMenu(menuName);
+        SaveMenuGroupResponse actual = registerMenu(menuName);
 
         //then
         assertThat(actual.getId()).isNotNull();
@@ -33,14 +36,14 @@ class MenuGroupServiceTest {
     @Test
     void list() {
         //when
-        List<MenuGroup> actual = menuGroupService.list();
+        List<MenuGroupResponse> actual = menuGroupService.list();
 
         //then
         assertThat(actual).hasSize(4);
     }
 
-    private MenuGroup registerMenu(String menuName) {
-        MenuGroup menuGroup = new MenuGroup(menuName);
+    private SaveMenuGroupResponse registerMenu(String menuName) {
+        SaveMenuGroupRequest menuGroup = new SaveMenuGroupRequest(menuName);
         return menuGroupService.create(menuGroup);
     }
 }

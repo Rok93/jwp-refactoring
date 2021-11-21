@@ -2,8 +2,8 @@ package kitchenpos.order.ui;
 
 import kitchenpos.order.application.TableService;
 import kitchenpos.order.domain.OrderTable;
-import kitchenpos.order.dto.OrderTableResponse;
-import kitchenpos.order.dto.SaveOrderTableRequest;
+import kitchenpos.order.ui.dto.OrderTableResponse;
+import kitchenpos.order.ui.dto.SaveOrderTableRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,6 +40,6 @@ public class TableRestController {
             @PathVariable final Long orderTableId,
             @RequestBody final OrderTable orderTable
     ) {
-        return ResponseEntity.ok(tableService.changeNumberOfGuests(orderTableId, orderTable));
+        return ResponseEntity.ok(tableService.changeNumberOfGuests(orderTableId, orderTable.getNumberOfGuests()));
     }
 }

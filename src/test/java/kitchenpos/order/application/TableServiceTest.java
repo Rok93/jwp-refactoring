@@ -2,11 +2,11 @@ package kitchenpos.order.application;
 
 import kitchenpos.menu.domain.Menu;
 import kitchenpos.menu.domain.MenuGroup;
-import kitchenpos.order.domain.Order;
 import kitchenpos.order.domain.OrderLineItem;
 import kitchenpos.order.domain.OrderTable;
-import kitchenpos.order.dto.OrderTableResponse;
-import kitchenpos.order.dto.SaveOrderTableRequest;
+import kitchenpos.order.ui.dto.OrderTableResponse;
+import kitchenpos.order.ui.dto.SaveOrderRequest;
+import kitchenpos.order.ui.dto.SaveOrderTableRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -71,7 +71,8 @@ class TableServiceTest {
     void testChangeEmptyWhenOrderTableContainNotCompletionOrder() {
         //given
         OrderTable orderTable = registerOrderTable(0, false);
-        orderService.create(Order.of(orderTable, Arrays.asList(new OrderLineItem(menu, 1))));
+        SaveOrderRequest request = new SaveOrderRequest(orderTable.getId(), Arrays.asList(new OrderLineItem(menu, 1)));
+        orderService.create(request);
 
         //when //then
         assertThatThrownBy(() -> tableService.changeEmpty(orderTable.getId()))

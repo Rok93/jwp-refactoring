@@ -4,8 +4,8 @@ import kitchenpos.order.domain.OrderRepository;
 import kitchenpos.order.domain.OrderStatus;
 import kitchenpos.order.domain.OrderTable;
 import kitchenpos.order.domain.OrderTableRepository;
-import kitchenpos.order.dto.OrderTableResponse;
-import kitchenpos.order.dto.SaveOrderTableRequest;
+import kitchenpos.order.ui.dto.OrderTableResponse;
+import kitchenpos.order.ui.dto.SaveOrderTableRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

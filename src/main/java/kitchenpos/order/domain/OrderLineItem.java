@@ -29,6 +29,10 @@ public class OrderLineItem {
         this.quantity = quantity;
     }
 
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
     public Long getSeq() {
         return seq;
     }
@@ -51,9 +55,5 @@ public class OrderLineItem {
 
     public long getQuantity() {
         return quantity;
-    }
-
-    public void setOrder(Order order) {
-        this.order = order;
     }
 }
