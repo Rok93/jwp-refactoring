@@ -8,7 +8,6 @@ import kitchenpos.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,11 +67,10 @@ public class OrderService {
     }
 
     @Transactional
-    public Order changeOrderStatus(final Long orderId, final String orderStatusValue) {
+    public Order changeOrderStatus(final Long orderId, final OrderStatus orderStatus) {
         final Order savedOrder = orderRepository.findById(orderId)
                 .orElseThrow(IllegalArgumentException::new);
 
-        final OrderStatus orderStatus = OrderStatus.valueOf(orderStatusValue);
         savedOrder.changeStatus(orderStatus);
         savedOrder.getOrderLineItems(); // todo: fetch Join 시키기!
 

@@ -71,16 +71,16 @@ public class Order {
     }
 
     public void changeStatus(OrderStatus orderStatus) {
-        if (OrderStatus.COMPLETION == orderStatus) { // todo: Custom Exception 정의하기!
+        if (OrderStatus.COMPLETION == this.orderStatus) {
             throw new IllegalArgumentException();
         }
 
         this.orderStatus = orderStatus;
     }
 
-    public void addOrderLineItem(OrderLineItem newOrderLineItem) { //todo: 편의제공 메서드로 이짓 저짓 하고 있음!
-        newOrderLineItem.setOrder(this);
-        this.orderLineItems.add(newOrderLineItem);
+    public void addOrderLineItem(OrderLineItem orderLineItem) {
+        orderLineItem.setOrder(this);
+        this.orderLineItems.add(orderLineItem);
     }
 
     public Long getId() {

@@ -104,7 +104,6 @@ class OrderServiceTest {
             assertThatThrownBy(() -> registerOrder(emptyOrderTable))
                     .isExactlyInstanceOf(IllegalArgumentException.class);
         }
-
     }
 
     @Nested
@@ -117,14 +116,14 @@ class OrderServiceTest {
         void changeOrderStatus() {
             //given
             Order savedOrder = registerOrder();
-            String changedOrderStatus = OrderStatus.MEAL.name();
+            OrderStatus changedOrderStatus = OrderStatus.MEAL;
 
             //when
             Order actual = orderService.changeOrderStatus(savedOrder.getId(), changedOrderStatus);
 
             //then
             assertThat(actual.getId()).isEqualTo(savedOrder.getId());
-            assertThat(actual.getOrderStatus()).isEqualTo(OrderStatus.MEAL.name());
+            assertThat(actual.getOrderStatus()).isEqualTo(OrderStatus.MEAL);
             assertThat(actual.getOrderTableId()).isEqualTo(orderTable.getId());
             assertThat(actual.getOrderLineItems()).hasSize(1);
         }
@@ -137,7 +136,7 @@ class OrderServiceTest {
             completionOrder.changeStatus(OrderStatus.COMPLETION);
             orderService.create(completionOrder);
 
-            String changedOrderStatus = OrderStatus.MEAL.name();
+            OrderStatus changedOrderStatus = OrderStatus.MEAL;
 
             //when //then
             assertThatThrownBy(() -> orderService.changeOrderStatus(completionOrder.getId(), changedOrderStatus))
@@ -148,10 +147,10 @@ class OrderServiceTest {
         @Test
         void changeOrderStatusWhenNotRegisteredOrderStatusIsCOMPLETION() {
             //given
-            Order notRegisteredOrder = new Order(100L, OrderTable.of(), OrderStatus.COMPLETION,
+            Order notRegisteredOrder = new Order(100L, orderTable, OrderStatus.COMPLETION,
                     Collections.singletonList(new OrderLineItem(menu, 1L)));
 
-            String changedOrderStatus = OrderStatus.MEAL.name();
+            OrderStatus changedOrderStatus = OrderStatus.MEAL;
 
             //when //then
             assertThatThrownBy(() -> orderService.changeOrderStatus(notRegisteredOrder.getId(), changedOrderStatus))
