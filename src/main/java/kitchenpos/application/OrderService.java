@@ -47,15 +47,14 @@ public class OrderService {
         final OrderTable orderTable = orderTableRepository.findById(order.getOrderTableId())
                 .orElseThrow(IllegalArgumentException::new);
 
-        final List<OrderLineItem> savedOrderLineItems = new ArrayList<>();
+//        final List<OrderLineItem> savedOrderLineItems = new ArrayList<>();
+        Order savedOrder = new Order(orderTable, OrderStatus.COOKING);
         for (final OrderLineItem orderLineItem : orderLineItems) { //todo: Order에 casecade 속성을 잘 걸면!!! 따로 저장할 필요 없이 잘 들어가지 않을까...?
             Menu menu = menuRepository.findById(orderLineItem.getMenuId())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴입니다."));
-            OrderLineItem newOrderLineItem = new OrderLineItem(menu, orderLineItem.getQuantity());
-            savedOrderLineItems.add(orderLineItemRepository.save(newOrderLineItem));
+//            savedOrderLineItems.add(new OrderLineItem(menu, orderLineItem.getQuantity())); // todo: casecade 속성으로 인해서 이 부분 제거할 수 있을 듯 함!
+            savedOrder.addOrderLineItem(new OrderLineItem(menu, orderLineItem.getQuantity()));
         }
-        Order savedOrder = new Order(orderTable, OrderStatus.COOKING, savedOrderLineItems);
-
         return orderRepository.save(savedOrder); //todo: DTO로 변경
     }
 

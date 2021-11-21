@@ -1,5 +1,6 @@
 package kitchenpos.application;
 
+import kitchenpos.dao.OrderRepository;
 import kitchenpos.dao.TableGroupRepository;
 import kitchenpos.domain.*;
 import kitchenpos.domain.order_table.dto.SaveOrderTableRequest;
@@ -33,7 +34,7 @@ class TableGroupServiceTest {
     private TableService tableService;
 
     @Autowired
-    private OrderService orderService;
+    private OrderRepository orderRepository;
 
     private MenuGroup menuGroup;
     private Menu menu;
@@ -129,7 +130,6 @@ class TableGroupServiceTest {
             //then
             TableGroup actual = tableGroupRepository.findById(tableGroup.getId()).get();
             assertThat(actual.getOrderTables()).isEmpty();
-//            assertThat(actual.getOrderTables()).usingElementComparatorOnFields("tableGroup").isNull();
         }
 
         @DisplayName("실패 - '계산 완료' 상태가 아닌 주문 테이블이 있는 경우")
@@ -167,6 +167,6 @@ class TableGroupServiceTest {
         Order order = Order.of(cookingOrderTable);
         OrderLineItem orderLineItem = new OrderLineItem(menu, 1L);
         order.addOrderLineItem(orderLineItem);
-        orderService.create(order);
+        orderRepository.save(order);
     }
 }
